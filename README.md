@@ -9,7 +9,7 @@
 cd travel-gak-backend
 npm install
 cp .env.example .env
-# .env 파일 열어서 ANTHROPIC_API_KEY, ADMIN_PASSWORD 채우기
+# .env 파일 열어서 GEMINI_API_KEY, ADMIN_PASSWORD 채우기
 npm start
 ```
 
@@ -24,11 +24,11 @@ curl -X POST http://localhost:3000/api/chat \
 
 ---
 
-## 1. Claude API 키 발급 (필수, 가장 먼저)
+## 1. Gemini API 키 발급 (필수, 가장 먼저)
 
-1. https://console.anthropic.com 가입 후 API 키 발급
-2. `.env`의 `ANTHROPIC_API_KEY`에 입력
-3. 사용 모델은 `claude-sonnet-5`로 고정되어 있습니다(`src/aiClient.js`).
+1. https://aistudio.google.com/apikey 접속 → 구글 계정으로 로그인 후 API 키 발급 (무료, 카드 등록 불필요)
+2. `.env`의 `GEMINI_API_KEY`에 입력
+3. 사용 모델은 `gemini-2.5-flash`로 고정되어 있습니다(`src/aiClient.js`).
 
 ---
 
@@ -38,7 +38,7 @@ curl -X POST http://localhost:3000/api/chat \
 2. https://render.com → New → Web Service → 방금 만든 저장소 연결
 3. Build Command: `npm install` / Start Command: `npm start`
 4. Environment 탭에서 `.env.example`에 있는 값들을 그대로 등록
-   - `ANTHROPIC_API_KEY`
+   - `GEMINI_API_KEY`
    - `ADMIN_PASSWORD`
    - `ALLOWED_ORIGIN` (예: `https://travelgak.netlify.app`)
    - `ADMIN_ALERT_WEBHOOK_URL` (5번 참고, 나중에 채워도 됨)

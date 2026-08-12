@@ -14,7 +14,7 @@ services:
         value: 22.9.0
       # 아래 값들은 Render 대시보드의 Environment 탭에서 직접 입력해야 합니다 (여기 값을 채워도
       # git에 커밋되면 노출되므로, sync:false로 두고 대시보드에서만 입력하도록 비워둡니다).
-      - key: ANTHROPIC_API_KEY
+      - key: GEMINI_API_KEY
         sync: false
       - key: JWT_SECRET
         sync: false

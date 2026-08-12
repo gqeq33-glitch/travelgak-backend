@@ -1,16 +1,18 @@
 /**
- * Claude API 호출 공통 래퍼. 카카오 스킬서버 / 웹챗봇 / 백오피스 AI 매니저가 모두 이 함수를 통해서만
- * Anthropic API를 호출한다 (API 키가 서버 밖으로 나가지 않도록 이 파일 하나로 집중시킴).
+ * Gemini API 호출 공통 래퍼. 카카오 스킬서버 / 웹챗봇 / 백오피스 AI 매니저가 모두 이 함수를 통해서만
+ * Gemini API를 호출한다 (API 키가 서버 밖으로 나가지 않도록 이 파일 하나로 집중시킴).
  */
-const Anthropic = require('@anthropic-ai/sdk');
+const { GoogleGenAI } = require('@google/genai');
 const { PERSONA_INTRO, buildKnowledgeBaseText } = require('./kb');
+
+const MODEL = 'gemini-2.5-flash';
 
 let client = null;
 function getClient() {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    throw new Error('ANTHROPIC_API_KEY가 설정되지 않았습니다. .env 파일을 확인하세요.');
+  if (!process.env.GEMINI_API_KEY) {
+    throw new Error('GEMINI_API_KEY가 설정되지 않았습니다. .env 파일을 확인하세요.');
   }
-  if (!client) client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  if (!client) client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
   return client;
 }
 
@@ -29,30 +31,31 @@ ${buildKnowledgeBaseText()}
 
 /** 고객 문의에 대한 CS 답변을 생성한다. */
 async function generateCsReply(userMessage, history = []) {
-  const anthropic = getClient();
-  const messages = [
-    ...history.map((h) => ({ role: h.role, content: h.content })),
-    { role: 'user', content: userMessage },
+  const ai = getClient();
+  const contents = [
+    ...history.map((h) => ({
+      role: h.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: h.content }],
+    })),
+    { role: 'user', parts: [{ text: userMessage }] },
   ];
-  const res = await anthropic.messages.create({
-    model: 'claude-sonnet-5',
-    max_tokens: 500,
-    system: CS_SYSTEM_PROMPT,
-    messages,
+  const res = await ai.models.generateContent({
+    model: MODEL,
+    contents,
+    config: { systemInstruction: CS_SYSTEM_PROMPT, maxOutputTokens: 500 },
   });
-  return res.content.map((b) => (b.type === 'text' ? b.text : '')).join('');
+  return res.text;
 }
 
 /** 백오피스 AI 매니저(마케팅/정산/콘텐츠)용 범용 생성 함수. */
 async function generateBackofficeDraft(systemPrompt, userPrompt) {
-  const anthropic = getClient();
-  const res = await anthropic.messages.create({
-    model: 'claude-sonnet-5',
-    max_tokens: 1200,
-    system: systemPrompt,
-    messages: [{ role: 'user', content: userPrompt }],
+  const ai = getClient();
+  const res = await ai.models.generateContent({
+    model: MODEL,
+    contents: userPrompt,
+    config: { systemInstruction: systemPrompt, maxOutputTokens: 1200 },
   });
-  return res.content.map((b) => (b.type === 'text' ? b.text : '')).join('');
+  return res.text;
 }
 
 module.exports = { generateCsReply, generateBackofficeDraft, CS_SYSTEM_PROMPT };

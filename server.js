@@ -44,8 +44,8 @@ app.get('/api/me', requireAuth, (req, res) => res.json({ user: req.user }));
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`여행각 백엔드 서버 실행 중: http://localhost:${port}`);
-  if (!process.env.ANTHROPIC_API_KEY) {
-    console.warn('⚠️  ANTHROPIC_API_KEY가 설정되지 않았습니다. .env 파일을 확인하세요 (.env.example 참고).');
+  if (!process.env.GEMINI_API_KEY) {
+    console.warn('⚠️  GEMINI_API_KEY가 설정되지 않았습니다. .env 파일을 확인하세요 (.env.example 참고).');
   }
   if (!process.env.JWT_SECRET) {
     console.warn('⚠️  JWT_SECRET이 설정되지 않았습니다. 로그인 기능이 동작하지 않습니다 (.env.example 참고).');

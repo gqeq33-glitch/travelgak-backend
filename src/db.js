@@ -39,6 +39,12 @@ db.exec(`
     mofa_json TEXT,
     mofa_updated_at TEXT
   );
+
+  -- 유료 전환될 수 있는 외부 API(Google Places 등) 호출 횟수를 월별로 세어 무료 한도 초과를 막는 데 쓴다.
+  CREATE TABLE IF NOT EXISTS api_usage_counters (
+    counter_key TEXT PRIMARY KEY,
+    count INTEGER NOT NULL DEFAULT 0
+  );
 `);
 
 function upsertUser({ provider, providerUserId, nickname, email }) {
@@ -102,7 +108,17 @@ function getDestMofaCache(dest) {
   return { data: JSON.parse(row.mofa_json), updatedAt: row.mofa_updated_at };
 }
 
+/** counterKey(예: 'places_api:2026-08') 호출 횟수를 1 늘리고, 늘어난 뒤의 값을 반환한다. */
+function incrementApiUsage(counterKey) {
+  db.prepare(`
+    INSERT INTO api_usage_counters (counter_key, count) VALUES (?, 1)
+    ON CONFLICT(counter_key) DO UPDATE SET count = count + 1
+  `).run(counterKey);
+  return db.prepare('SELECT count FROM api_usage_counters WHERE counter_key = ?').get(counterKey).count;
+}
+
 module.exports = {
   db, upsertUser, getUserById, saveItinerary, listItineraries,
   upsertDestBlogFeedCache, getDestBlogFeedCache, upsertDestMofaCache, getDestMofaCache,
+  incrementApiUsage,
 };

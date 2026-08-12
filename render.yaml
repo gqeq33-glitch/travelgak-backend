@@ -1,0 +1,42 @@
+# Render.com 배포 청사진(Blueprint). Render 대시보드에서 "New +" → "Blueprint" →
+# 이 저장소를 선택하면 아래 설정대로 서비스가 자동 생성됩니다 (무료 플랜 기준).
+# render.yaml 없이 수동으로 "Web Service"를 만들어도 되며, 그 경우 README 2번 항목을 참고하세요.
+services:
+  - type: web
+    name: travel-gak-backend
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: 22.9.0
+      # 아래 값들은 Render 대시보드의 Environment 탭에서 직접 입력해야 합니다 (여기 값을 채워도
+      # git에 커밋되면 노출되므로, sync:false로 두고 대시보드에서만 입력하도록 비워둡니다).
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: ALLOWED_ORIGIN
+        sync: false
+      - key: FRONTEND_ORIGIN
+        sync: false
+      - key: BACKEND_PUBLIC_URL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: NAVER_LOGIN_CLIENT_ID
+        sync: false
+      - key: NAVER_LOGIN_CLIENT_SECRET
+        sync: false
+      - key: KAKAO_LOGIN_CLIENT_ID
+        sync: false
+      - key: KAKAO_LOGIN_CLIENT_SECRET
+        sync: false
+      - key: NAVER_CLIENT_ID
+        sync: false
+      - key: NAVER_CLIENT_SECRET
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false

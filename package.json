@@ -1,0 +1,24 @@
+{
+  "name": "travel-gak-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "여행각(Travel Gak) 카카오톡 AI 매니저 + 웹챗봇 + 백오피스 AI 매니저 프록시 서버",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "node-cron": "^4.2.1"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  }
+}

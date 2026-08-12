@@ -5,7 +5,7 @@
 const { GoogleGenAI } = require('@google/genai');
 const { PERSONA_INTRO, buildKnowledgeBaseText } = require('./kb');
 
-const MODEL = 'gemini-2.5-flash';
+const MODEL = 'gemini-3.6-flash';
 
 let client = null;
 function getClient() {
@@ -29,33 +29,39 @@ const CS_SYSTEM_PROMPT = `${PERSONA_INTRO}
 ${buildKnowledgeBaseText()}
 ---`;
 
+/** 이전 대화 기록을 하나의 텍스트 프롬프트로 합친다 (Interactions API는 무상태 호출이라 매 요청에 기록을 함께 넘긴다). */
+function buildInputWithHistory(history, userMessage) {
+  if (!history.length) return userMessage;
+  const transcript = history
+    .map((h) => `${h.role === 'assistant' ? '매니저' : '사용자'}: ${h.content}`)
+    .join('\n');
+  return `${transcript}\n사용자: ${userMessage}`;
+}
+
 /** 고객 문의에 대한 CS 답변을 생성한다. */
 async function generateCsReply(userMessage, history = []) {
   const ai = getClient();
-  const contents = [
-    ...history.map((h) => ({
-      role: h.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: h.content }],
-    })),
-    { role: 'user', parts: [{ text: userMessage }] },
-  ];
-  const res = await ai.models.generateContent({
+  const interaction = await ai.interactions.create({
     model: MODEL,
-    contents,
-    config: { systemInstruction: CS_SYSTEM_PROMPT, maxOutputTokens: 500 },
+    store: false,
+    system_instruction: CS_SYSTEM_PROMPT,
+    generation_config: { max_output_tokens: 500, thinking_level: 'minimal' },
+    input: buildInputWithHistory(history, userMessage),
   });
-  return res.text;
+  return interaction.output_text;
 }
 
 /** 백오피스 AI 매니저(마케팅/정산/콘텐츠)용 범용 생성 함수. */
 async function generateBackofficeDraft(systemPrompt, userPrompt) {
   const ai = getClient();
-  const res = await ai.models.generateContent({
+  const interaction = await ai.interactions.create({
     model: MODEL,
-    contents: userPrompt,
-    config: { systemInstruction: systemPrompt, maxOutputTokens: 1200 },
+    store: false,
+    system_instruction: systemPrompt,
+    generation_config: { max_output_tokens: 1200, thinking_level: 'minimal' },
+    input: userPrompt,
   });
-  return res.text;
+  return interaction.output_text;
 }
 
 module.exports = { generateCsReply, generateBackofficeDraft, CS_SYSTEM_PROMPT };

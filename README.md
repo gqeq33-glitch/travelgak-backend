@@ -28,7 +28,7 @@ curl -X POST http://localhost:3000/api/chat \
 
 1. https://aistudio.google.com/apikey 접속 → 구글 계정으로 로그인 후 API 키 발급 (무료, 카드 등록 불필요)
 2. `.env`의 `GEMINI_API_KEY`에 입력
-3. 사용 모델은 `gemini-2.5-flash`로 고정되어 있습니다(`src/aiClient.js`).
+3. 사용 모델은 `gemini-3.6-flash`(Interactions API)로 고정되어 있습니다(`src/aiClient.js`).
 
 ---
 

@@ -62,4 +62,43 @@ function buildBookingCards(message, replyText) {
   return cards.slice(0, 2);
 }
 
-module.exports = { PERSONA_INTRO, COMPANY, DESTINATIONS, FAQ, buildKnowledgeBaseText, buildBookingCards };
+/** 맛집/관광지/교통편 답변에 강제할 서식. 실시간 데이터가 없으면 숫자를 지어내지 말고 "확인 필요"라고 쓰게 한다. */
+const PLACE_ANSWER_FORMAT = `사용자가 특정 지역의 맛집/카페/관광 명소/교통편을 물어보면, 해당 질문에 한해 아래 서식을 장소마다 반복해서 답변하세요 (그 외 일반 질문에는 이 서식을 쓰지 마세요). 최대 3곳까지만 추천하세요.
+
+**[명소/맛집 이름]**
+⭐ 구글 평점 / 예상 가격대: (예: 4.6 / 1~2만 원대)
+📍 주소 및 위치: (상세 주소)
+🚗 교통편 및 이동방법: (택시/버스/렌터카 등 옵션)
+💡 핵심 꿀팁 및 특징: (한두 줄)
+🗺️ 구글 지도 링크: [지도에서 보기](구글 지도 URL)
+
+[실시간 장소 데이터]가 함께 주어지면 그 안의 평점/주소/지도 링크를 그대로 쓰고, 절대 다른 숫자로 바꾸지 마세요.
+[실시간 장소 데이터]가 없으면 평점/주소는 지어내지 말고 "확인 필요"라고 쓰고, 지도 링크는
+https://www.google.com/maps/search/?api=1&query=장소명 형식으로 장소명을 넣어 만드세요.`;
+
+/** 여행지 + "맛집/관광지/교통" 의도를 감지해 Google Places 검색어를 만든다. 매칭 없으면 null. */
+function detectPlaceQuery(message) {
+  const dest = DESTINATIONS.find((d) => message.includes(d));
+  if (!dest) return null;
+  if (['맛집', '음식점', '카페', '레스토랑', '식당'].some((k) => message.includes(k))) {
+    return { destination: dest, searchQuery: `${dest} 맛집` };
+  }
+  if (['관광지', '명소', '가볼만한', '볼거리', '관광명소'].some((k) => message.includes(k))) {
+    return { destination: dest, searchQuery: `${dest} 관광 명소` };
+  }
+  if (['교통', '가는 방법', '이동', '대중교통'].some((k) => message.includes(k))) {
+    return { destination: dest, searchQuery: `${dest} 교통` };
+  }
+  return null;
+}
+
+module.exports = {
+  PERSONA_INTRO,
+  COMPANY,
+  DESTINATIONS,
+  FAQ,
+  buildKnowledgeBaseText,
+  buildBookingCards,
+  PLACE_ANSWER_FORMAT,
+  detectPlaceQuery,
+};

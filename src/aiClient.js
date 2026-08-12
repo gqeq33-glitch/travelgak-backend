@@ -3,7 +3,8 @@
  * Gemini API를 호출한다 (API 키가 서버 밖으로 나가지 않도록 이 파일 하나로 집중시킴).
  */
 const { GoogleGenAI } = require('@google/genai');
-const { PERSONA_INTRO, buildKnowledgeBaseText } = require('./kb');
+const { PERSONA_INTRO, buildKnowledgeBaseText, PLACE_ANSWER_FORMAT, detectPlaceQuery } = require('./kb');
+const { searchPlaces } = require('./placesClient');
 
 const MODEL = 'gemini-3.6-flash';
 
@@ -24,10 +25,22 @@ const CS_SYSTEM_PROMPT = `${PERSONA_INTRO}
 확실하지 않은 정보(정확한 항공 시간표, 개별 예약 상태 등)는 지어내지 말고
 "정확한 확인이 필요해요"라고 안내한 뒤 상담원 연결을 권하세요.
 
+${PLACE_ANSWER_FORMAT}
+
 아래는 여행각의 공식 정보입니다. 이 범위 안에서만 답변하세요:
 ---
 ${buildKnowledgeBaseText()}
 ---`;
+
+/** Google Places 검색 결과를 프롬프트에 넣을 텍스트 블록으로 만든다. 결과 없으면 빈 문자열. */
+function buildLiveDataBlock(places) {
+  if (!places.length) return '';
+  const lines = places.map(
+    (p) =>
+      `- ${p.name} | 평점: ${p.rating ?? '정보 없음'}${p.ratingCount ? ` (리뷰 ${p.ratingCount}개)` : ''} | 주소: ${p.address ?? '정보 없음'} | 지도: ${p.mapsUri}`
+  );
+  return `\n\n[실시간 장소 데이터 — 아래 항목만 사용하고 숫자·주소를 임의로 바꾸지 마세요]\n${lines.join('\n')}`;
+}
 
 /** 이전 대화 기록을 하나의 텍스트 프롬프트로 합친다 (Interactions API는 무상태 호출이라 매 요청에 기록을 함께 넘긴다). */
 function buildInputWithHistory(history, userMessage) {
@@ -38,15 +51,20 @@ function buildInputWithHistory(history, userMessage) {
   return `${transcript}\n사용자: ${userMessage}`;
 }
 
-/** 고객 문의에 대한 CS 답변을 생성한다. */
+/** 고객 문의에 대한 CS 답변을 생성한다. 맛집/관광지/교통 질문이면 Google Places 실시간 데이터를 함께 넘긴다. */
 async function generateCsReply(userMessage, history = []) {
   const ai = getClient();
+
+  const placeQuery = detectPlaceQuery(userMessage);
+  const places = placeQuery ? await searchPlaces(placeQuery.searchQuery) : [];
+  const input = buildInputWithHistory(history, userMessage) + buildLiveDataBlock(places);
+
   const interaction = await ai.interactions.create({
     model: MODEL,
     store: false,
     system_instruction: CS_SYSTEM_PROMPT,
-    generation_config: { max_output_tokens: 500, thinking_level: 'minimal' },
-    input: buildInputWithHistory(history, userMessage),
+    generation_config: { max_output_tokens: 800, thinking_level: 'minimal' },
+    input,
   });
   return interaction.output_text;
 }

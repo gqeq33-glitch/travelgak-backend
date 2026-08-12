@@ -53,7 +53,7 @@ function buildBookingCards(message, replyText) {
   const dest = DESTINATIONS.find((d) => text.includes(d));
   if (!dest) return [];
   const cards = [];
-  if (!text.includes('투어') || text.includes('숙소') || text.includes('호텔')) {
+  if (text.includes('숙소') || text.includes('호텔')) {
     cards.push({ kind: 'hotel', partner: '아고다', label: `🏨 ${dest} 추천 숙소 예약하기 (아고다)` });
   }
   if (text.includes('투어') || text.includes('액티비티') || text.includes('체험')) {

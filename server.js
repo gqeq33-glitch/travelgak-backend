@@ -11,6 +11,7 @@ const localBlogFeedRoutes = require('./src/routes/localBlogFeed');
 const authRoutes = require('./src/routes/auth');
 const itinerariesRoutes = require('./src/routes/itineraries');
 const destInfoRoutes = require('./src/routes/destInfo');
+const goodPriceStoresRoutes = require('./src/routes/goodPriceStores');
 const { requireAuth } = require('./src/authMiddleware');
 const { startDailyRefreshCron } = require('./src/cron');
 
@@ -27,7 +28,7 @@ app.get('/', (req, res) => {
   res.json({
     ok: true,
     service: 'travel-gak-backend',
-    endpoints: ['/kakao/webhook', '/api/chat', '/api/admin/*', '/api/hotels', '/api/local-blog-feed', '/api/dest-info', '/auth/naver/login', '/auth/kakao/login', '/api/me', '/api/itineraries'],
+    endpoints: ['/kakao/webhook', '/api/chat', '/api/admin/*', '/api/hotels', '/api/local-blog-feed', '/api/dest-info', '/api/good-price-stores', '/auth/naver/login', '/auth/kakao/login', '/api/me', '/api/itineraries'],
   });
 });
 
@@ -37,6 +38,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/hotels', hotelsRoutes);
 app.use('/api/local-blog-feed', localBlogFeedRoutes);
 app.use('/api/dest-info', destInfoRoutes);
+app.use('/api/good-price-stores', goodPriceStoresRoutes);
 app.use('/auth', authRoutes);
 app.use('/api/itineraries', itinerariesRoutes);
 app.get('/api/me', requireAuth, (req, res) => res.json({ user: req.user }));
